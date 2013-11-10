@@ -42,16 +42,16 @@ def list_sentences(text):
     2. A new sentence after the first sentence must start with a space.
 
     >>> list_sentences('Hello there! I am python. How are you?')
-    ['Hello there', 'I am python', 'How are you']
+    ['Hello there!', 'I am python.', 'How are you?']
     >>> list_sentences('Where are you? India?')
-    ['Where are you', 'India']
+    ['Where are you?', 'India?']
     """
     sentences = []
     start = 0
 
     for index, char in enumerate(text):
         if char in '.!?':
-            new = text[start:index]
+            new = text[start: index+1]
             start = index + 2
             sentences.append(new)
 
@@ -66,16 +66,15 @@ def list_words(sentence):
     REFERENCE: http://stackoverflow.com/questions/1059559/
 
     >>> list_words('How are you')
-    ['how', 'are', 'you']
+    ['How', 'are', 'you']
     >>> list_words('Hello, may I know your name')
-    ['hello', 'may', 'i', 'know', 'your', 'name']
+    ['Hello', 'may', 'I', 'know', 'your', 'name']
     >>> list_words("Hey, you - what are you doing here")
-    ['hey', 'you', 'what', 'are', 'you', 'doing', 'here']
+    ['Hey', 'you', 'what', 'are', 'you', 'doing', 'here']
     """
     import re
 
-    words = re.findall(r"[\w']+", sentence)
-    return [word.lower() for word in words]
+    return re.findall(r"[\w']+", sentence)
 
 
 def present_in_dict(word, dictionary):
@@ -89,10 +88,10 @@ def present_in_dict(word, dictionary):
 
     >>> present_in_dict('across', {1: ['a'], 6: ['across', 'mellow']})
     True
-    >>> present_in_dict('helle', {2: ['an'], 5: ['hello'], 4: ['here']})
+    >>> present_in_dict('Helle', {2: ['an'], 5: ['hello'], 4: ['here']})
     False
     """
-    return word in dictionary[len(word)]
+    return word.lower() in dictionary[len(word)]
 
 
 def find_closest_match(word, dictionary):
@@ -110,8 +109,8 @@ def find_closest_match(word, dictionary):
     >>> find_closest_match('yelloy', {6: ['yellow', 'orange', 'yellos']})
     'yellos'
     """ 
-    # Given word with last character removed.
-    given_word = remove_last_char(word)
+    # Given word with last character removed and converted to lowercase.
+    given_word = remove_last_char(word).lower()
 
     # List of words with same length as that of the given length.
     words_with_given_length = sorted(dictionary[len(word)])
@@ -138,6 +137,32 @@ def is_correct_sentence(sentence, dictionary):
         if not present_in_dict(word, dictionary):
             return False
     return True
+
+
+def correct_sentence(sentence, dictionary):
+    """(str) -> str
+
+    Return a sentence with all the words spelt correctly.
+
+    >>> correct_sentence('Ww reached there.', {2: ['we'], 5: ['there'], 7: ['reached']})
+    'We reached there.'
+    >>> correct_sentence('I must sat!', {1: ['i'], 3: ['say'], 4: ['must']})
+    'I must say!'
+    """
+    end_punc = sentence[-1]
+    words = list_words(sentence)
+
+    new_sentence = ''
+
+    for word in words:
+        if present_in_dict(word, dictionary):
+            new_sentence += word + ' '
+        else:
+            new_sentence += find_closest_match(word, dictionary) + ' '
+
+    # Remove the white space just after the last word
+    return remove_last_char(new_sentence) + end_punc
+
 
 
 if __name__ == '__main__':
