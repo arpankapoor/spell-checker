@@ -88,8 +88,10 @@ def present_in_dict(word, dictionary):
 
     >>> present_in_dict('across', {1: ['a'], 6: ['across', 'mellow']})
     True
-    >>> present_in_dict('Helle', {2: ['an'], 5: ['hello'], 4: ['here']})
+    >>> present_in_dict('helle', {2: ['an'], 5: ['hello'], 4: ['here']})
     False
+    >>> present_in_dict('Hello', {2: ['an'], 5: ['hello'], 4: ['here']})
+    True
     """
     return word.lower() in dictionary[len(word)]
 
@@ -108,16 +110,22 @@ def find_closest_match(word, dictionary):
     'hello'
     >>> find_closest_match('yelloy', {6: ['yellow', 'orange', 'yellos']})
     'yellos'
+    >>> find_closest_match('HELLE', {2: ['an'], 5: ['hello']})
+    'HELLO'
     """ 
     # Given word with last character removed and converted to lowercase.
-    given_word = remove_last_char(word).lower()
+    given_word = remove_last_char(word)
+    given_word_lower = given_word.lower()
 
-    # List of words with same length as that of the given length.
+    # Sorted list of words with same length as that of the given length.
     words_with_given_length = sorted(dictionary[len(word)])
 
     for w in words_with_given_length:
-        if remove_last_char(w) == given_word:
-            return w
+        if remove_last_char(w) == given_word_lower:
+            if word[-1].isupper():
+                return given_word + w[-1].upper()
+            else:
+                return given_word + w[-1]
 
 
 def is_correct_sentence(sentence, dictionary):
@@ -149,6 +157,11 @@ def correct_sentence(sentence, dictionary):
     >>> correct_sentence('I must sat!', {1: ['i'], 3: ['say'], 4: ['must']})
     'I must say!'
     """
+    # TODO: Save punctuations and their locations.
+    #punctuations = []
+    #for char in sentence:
+    #    if char in ',.;:?!-':
+
     end_punc = sentence[-1]
     words = list_words(sentence)
 
@@ -164,8 +177,18 @@ def correct_sentence(sentence, dictionary):
     return remove_last_char(new_sentence) + end_punc
 
 
-
 if __name__ == '__main__':
     import sys
     dictname = sys.argv[1]
     testname = sys.argv[2]
+    with open(dictname, 'r') as dictfile:
+        words = []
+        for line in dictfile:
+            words.extend(list_words(line))
+    dictionary = create_dictionary(words)
+    testfile = open(testname, 'r')
+    sentences = list_sentences(testfile.read())
+    testfile.close()
+    for sentence in sentences:
+        if not is_correct_sentence(sentence, dictionary):
+            print correct_sentence(sentence, dictionary)
