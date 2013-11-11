@@ -129,7 +129,7 @@ def find_closest_match(word, dictionary):
 
 
 def is_correct_sentence(sentence, dictionary):
-    """(str) -> bool
+    """(str, dict) -> bool
 
     Check if the given sentence has all the words spelt correctly.
 
@@ -147,8 +147,33 @@ def is_correct_sentence(sentence, dictionary):
     return True
 
 
+def list_punctuations(sentence):
+    """(str) -> (list of list with [int, str])
+
+    Return a list of lists with each sublist having a punctuation(string) and
+    the position of that punctuation in the sentence.
+
+    The list has the punctuations in the increasing order of the index, i.e.,
+    the output list is sorted according to the index.
+
+    >>> save_punctuations('But, the movie was not all that great.')
+    [[3, ','], [37, '.']]
+    >>> save_punctuations('A really fast car, I must say!')
+    [[17, ','], [29, '!']]
+    >>> save_punctuations('"Hello there!", he said.')
+    [[0, '"'], [12, '!'], [13, '"'], [14, ','], [23, '.']]
+    """
+    punctuations = []
+
+    for index, char in enumerate(sentence):
+        if char in '`"[](){}:,-_.!?;/\|*^#@':
+            punctuations.append([index, char])
+
+    return punctuations
+
+
 def correct_sentence(sentence, dictionary):
-    """(str) -> str
+    """(str, dict) -> str
 
     Return a sentence with all the words spelt correctly.
 
@@ -156,13 +181,11 @@ def correct_sentence(sentence, dictionary):
     'We reached there.'
     >>> correct_sentence('I must sat!', {1: ['i'], 3: ['say'], 4: ['must']})
     'I must say!'
+    >>> correct_sentence('Hello, mam.', {3: ['man'], 5: ['hello']})
+    'Hello, mam.'
     """
-    # TODO: Save punctuations and their locations.
-    #punctuations = []
-    #for char in sentence:
-    #    if char in ',.;:?!-':
+    punctuations = list_punctuations(sentence)
 
-    end_punc = sentence[-1]
     words = list_words(sentence)
 
     new_sentence = ''
@@ -174,7 +197,13 @@ def correct_sentence(sentence, dictionary):
             new_sentence += find_closest_match(word, dictionary) + ' '
 
     # Remove the white space just after the last word
-    return remove_last_char(new_sentence) + end_punc
+    new_sentence = remove_last_char(new_sentence)
+
+    # Insert back the punctuations
+    for p in punctuations:
+        new_sentence = new_sentence[:p[0]] + p[1] + new_sentence[p[0]:]
+
+    return new_sentence
 
 
 if __name__ == '__main__':
